@@ -1,0 +1,63 @@
+services:
+  mysql:
+    image: "mysql:9.4.0"
+    container_name: "wordpress-mysql"
+    restart: always
+    volumes:
+      - "./mysql/data:/var/lib/mysql"
+    environment:
+       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+       MYSQL_DATABASE: ${MYSQL_DATABASE}
+       MYSQL_USER: ${MYSQL_USER}
+       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - "wordpress"
+    healthcheck:
+      test: mysqladmin ping
+      interval: 2s
+
+  phpmyadmin:
+    image: "phpmyadmin:5.2.2"
+    container_name: "wordpress-phpmyadmin"
+    restart: always
+    environment:
+      PMA_HOST: "wordpress-mysql"
+    networks:
+      - "wordpress"
+    ports:
+      - "127.0.0.1:8000:80"
+    depends_on:
+      - "mysql"
+
+  adminer:
+    image: "adminer:5.4.2"
+    container_name: "wordpress-adminer"
+    restart: always
+    networks:
+      - "wordpress"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - "mysql"
+
+  wordpress:
+    image: "wordpress:6.8.2"
+    container_name: "wordpress-wordpress"
+    restart: always
+    volumes:
+      - "./wordpress:/var/www/html"
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+    networks:
+      - "wordpress"
+    ports:
+      - "80:80"
+    depends_on:
+      - "mysql"
+
+networks:
+  wordpress:
+    name: "wordpress"
